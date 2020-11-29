@@ -18,30 +18,8 @@ function SidebarHistory( editor ) {
 
 	//
 
-	var persistent = new UIBoolean( config.getKey( 'settings/history' ), strings.getKey( 'sidebar/history/persistent' ) );
-	persistent.setPosition( 'absolute' ).setRight( '8px' );
-	persistent.onChange( function () {
+	config.setKey( 'settings/history', true );
 
-		var value = this.getValue();
-
-		config.setKey( 'settings/history', value );
-
-		if ( value ) {
-
-			alert( 'The history will be preserved across sessions.\nThis can have an impact on performance when working with textures.' );
-
-			var lastUndoCmd = history.undos[ history.undos.length - 1 ];
-			var lastUndoId = ( lastUndoCmd !== undefined ) ? lastUndoCmd.id : 0;
-			editor.history.enableSerialization( lastUndoId );
-
-		} else {
-
-			signals.historyChanged.dispatch();
-
-		}
-
-	} );
-	container.add( persistent );
 
 	container.add( new UIBreak(), new UIBreak() );
 

@@ -657,7 +657,50 @@ Editor.prototype = {
 		} );
 
 	},
+	fromUPDATE: function (json) {
+		this.history.clear();
+		this.storage.clear();
 
+
+		this.scene.name = "Scene";
+		this.scene.userData = {};
+		this.scene.background = null;
+		this.scene.environment = null;
+		this.scene.fog = null;
+
+		var objects = this.scene.children;
+
+		while ( objects.length > 0 ) {
+
+			this.removeObject( objects[ 0 ] );
+
+		}
+
+		// this.geometries = {};
+		// this.materials = {};
+		// this.textures = {};
+		// this.scripts = {};
+
+		// this.materialsRefCounter.clear();
+
+		// this.animations = {};
+		// this.mixer.stopAllAction();
+
+		// this.deselect();
+
+		// this.signals.editorCleared.dispatch();
+
+
+		var scope = this;
+		var loader = new THREE.ObjectLoader();
+		this.history.fromJSON( json.history );
+		loader.parse( json.scene, function ( scene ) {
+
+			scope.setScene( scene );
+
+		} );
+
+	},
 	toJSON: function () {
 
 		// scripts clean up

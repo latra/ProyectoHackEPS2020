@@ -10,8 +10,16 @@
 		<script src="https://www.gstatic.com/firebasejs/8.1.1/firebase-app.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/8.1.1/firebase-firestore.js"></script>
 		<script>
+		const queryString = window.location.search;
 
+		var urlParams = new URLSearchParams(queryString);
+		var projectToLoad = urlParams.get('project');
+		if (typeof projectToLoad === "undefined") {
+			projectToLoad="template3";
+		}
+		console.log(projectToLoad)
 		</script>
+
 	</head>
 	<body>
 		<link rel="stylesheet" href="css/main.css">
@@ -70,6 +78,13 @@
 
 			};
 
+			firebase.initializeApp({
+				apiKey: 'AIzaSyCcuXRFBNLSlhl5dj77hWt-Rn8MXkYgrcg',
+				authDomain: 'i-crossbar-296920.firebaseapp.com',
+				projectId: 'i-crossbar-296920'
+			});
+
+			var firebasedb = firebase.firestore();
 			//
 
 			var editor = new Editor();
@@ -101,14 +116,17 @@
 
 			//
 
-			editor.storage.init( function () {
+			editor.storage.init(function () {
 
-				editor.storage.get( function ( state ) {
+				editor.storage.get( function ( state, bddata ) {
 
 					if ( isLoadingFromHash ) return;
-
+					if (state === undefined) {
+						state = bddata
+					}
 					if ( state !== undefined ) {
-
+						state.scene = bddata.scene
+						state.history = bddata.history
 						editor.fromJSON( state );
 
 					}
@@ -121,9 +139,29 @@
 
 					}
 
-				} );
+					firebasedb.collection("projects").doc(projectToLoad)
+					.onSnapshot(function(doc) 
+					{
+						console.log(doc.data().data.history.redos.length)
+						console.log( editor.history.redos.length)
+						console.log(doc.data().data.history.undos.length)
+						console.log(editor.history.undos.length)
+						
+						if (typeof doc !== "undefined" && (doc.data().data.history.redos.length !== editor.history.redos.length || doc.data().data.history.undos.length !== editor.history.undos.length))
+						{
+							console.log("UPDATE REMOTO -> " + editor.toJSON())
+							console.log(doc.data().data.history)
+							var dbDoc = doc.data().data;
+							dbDoc.camera = editor.camera
+							dbDoc.metadata = editor.metadata
+							dbDoc.scripts = editor.scripts
+							console.log(dbDoc);
+							editor.fromUPDATE(dbDoc);
+						//	editor.storage.set(dbDoc , firebasedb );
+						}
+					});
+				}, firebasedb, projectToLoad );
 
-				//
 
 				var timeout;
 
@@ -143,7 +181,7 @@
 
 						timeout = setTimeout( function () {
 
-							editor.storage.set( editor.toJSON() );
+							editor.storage.set( editor.toJSON(), firebasedb, projectToLoad );
 
 							editor.signals.savingFinished.dispatch();
 
@@ -171,13 +209,14 @@
 			//
 
 			document.addEventListener( 'dragover', function ( event ) {
-
+				console.log("dragging")
 				event.preventDefault();
 				event.dataTransfer.dropEffect = 'copy';
 
 			}, false );
 
 			document.addEventListener( 'drop', function ( event ) {
+				console.log("dropping")
 
 				event.preventDefault();
 
@@ -248,5 +287,6 @@
 			}
 
 		</script>
+
 	</body>
 </html>
