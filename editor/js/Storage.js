@@ -18,7 +18,7 @@ function Storage() {
 
 	var name = 'threejs-editor';
 	var version = 1;
-
+	var started = 0;
 	var database;
 
 	return {
@@ -79,6 +79,11 @@ function Storage() {
 							request2.onsuccess = function ( event ) {
 								firebasedb.collection("projects").doc("template")
 									.onSnapshot(function(doc) {
+										if (started < 2) {
+											started++;
+										}
+										else {
+										console.log("STARTED: ", started);
 
 										console.log("Updated data: ", doc.data());
 										var start = performance.now();
@@ -92,6 +97,7 @@ function Storage() {
 											editor.fromJSON(doc.data().data);
 
 										};
+										}
 									});
 								callback( event.target.result );
 
