@@ -130,14 +130,21 @@ function Storage() {
 			var objectStore = transaction.objectStore( 'states' );
 			var request = objectStore.put( data, 0 );
 			var file = firebasedb.collection("projects").doc("template");
-			file.set({
-				data
-			}, { merge: true });
-			request.onsuccess = function () {
+			var docRef = firebasedb.collection("projects").doc("template");
 
-				console.log( '[' + /\d\d\:\d\d\:\d\d/.exec( new Date() )[ 0 ] + ']', 'Saved state to IndexedDB. ' + ( performance.now() - start ).toFixed( 2 ) + 'ms' );
+			docRef.get().then(function(doc) {
+				if (!doc.exists ||  doc.data().data.scene != data.scene) {
+					file.set({
+						data
+					}, { merge: true });
+					request.onsuccess = function () {
 
-			};
+						console.log( '[' + /\d\d\:\d\d\:\d\d/.exec( new Date() )[ 0 ] + ']', 'Saved state to IndexedDB. ' + ( performance.now() - start ).toFixed( 2 ) + 'ms' );
+
+					};
+				}
+			});
+
 
 		},
 
